@@ -1,7 +1,5 @@
 > [!NOTE]
 > Considering that myself and my team have graduated from the Northcoders Data Engineering course, this project will be archived and made read-only.
-> I will be continuing this project solo, which you can find [here](https://github.com/ajschofield/ETL-Project), where I will be adding more features
-> over time.
 
 # ToteSys - Data Engineering Project
 [![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)](https://www.python.org/)
@@ -9,9 +7,6 @@
 [![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)](https://www.terraform.io/)
 [![Postgresql](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/features/actions)
-
-[![Terraform Main Deployment Workflow Status](https://img.shields.io/github/actions/workflow/status/ajschofield/de-project-bentley/deploy.yml?branch=main&style=flat-square&label=deploy)](https://github.com/ajschofield/de-project-bentley/actions/workflows/deploy.yml?query=branch%3Amain)
-[![Production Environment Status](https://img.shields.io/github/deployments/ajschofield/de-project-bentley/production?style=flat-square&label=env)](https://github.com/ajschofield/de-project-bentley/deployments/production)
 
 # Contributors
 <table>
@@ -82,7 +77,7 @@ Our goal is to create a reliable ETL (Extract, Transform, Load) pipeline that
 can:
 
 1. Extract the data from the `totesys` operational database
-2. Store the data in AWS S3 buckets, that will form our data lake
+2. Store the data in AWS S3 buckets - this will be our data lake
 3. Transform the data into a suitable schema for the data warehouse
 4. Load the transformed data into the data warehouse hosted on AWS
 
