@@ -3,7 +3,7 @@ name = "nc-de-totesys-solo"
 # Until versioning is decided, keep as 0.0.0 for now
 version = "0.0.0"
 description = "Totesys ETL pipeline"
-requires-python = "~=3.11"
+requires-python = "~=3.11.0"
 
 dependencies = [
     "pandas>=3.0.3",
