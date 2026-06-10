@@ -215,9 +215,9 @@ class TestCreateDimDate:
                 "quarter",
             ],
         )
-        with patch("src.dataframes.create_fact_payment") as mock_fp:
-            with patch("src.dataframes.create_fact_purchase_orders") as mock_fpo:
-                with patch("src.dataframes.create_fact_sales_order") as mock_fso:
+        with patch("src.transform_lambda.dataframes.create_fact_payment") as mock_fp:
+            with patch("src.transform_lambda.dataframes.create_fact_purchase_orders") as mock_fpo:
+                with patch("src.transform_lambda.dataframes.create_fact_sales_order") as mock_fso:
                     mock_fp.return_value = df_one
                     mock_fpo.return_value = df_two
                     mock_fso.return_value = df_three
