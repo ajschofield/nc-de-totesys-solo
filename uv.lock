@@ -331,6 +331,15 @@ dev = [
     { name = "pytest-mock" },
     { name = "requests" },
 ]
+lambda-layer-01 = [
+    { name = "pg8000" },
+]
+lambda-layer-02 = [
+    { name = "pandas" },
+    { name = "pg8000" },
+    { name = "pyarrow" },
+    { name = "sqlalchemy" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -351,6 +360,13 @@ dev = [
     { name = "pytest", specifier = ">=8.0" },
     { name = "pytest-mock", specifier = ">=3.14" },
     { name = "requests", specifier = ">=2.34.2" },
+]
+lambda-layer-01 = [{ name = "pg8000", specifier = ">=1.31.5" }]
+lambda-layer-02 = [
+    { name = "pandas", specifier = ">=3.0.3" },
+    { name = "pg8000", specifier = ">=1.31.5" },
+    { name = "pyarrow", specifier = ">=24.0.0" },
+    { name = "sqlalchemy", specifier = ">=2.0.50" },
 ]
 
 [[package]]
