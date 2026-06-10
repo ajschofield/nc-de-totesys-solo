@@ -44,6 +44,18 @@ TABLES = [
     "payment_type",
 ]
 
+IMMUTABLE_DIMS = [
+    "dim_counterparty",
+    "dim_date",
+    "dim_location",
+    "dim_staff",
+    "dim_design",
+    "dim_transaction",
+    "dim_payment_type",
+]
+
+_WATERMARK_KEY = "_watermark"
+
 
 def lambda_handler(event, context):
     db = None
@@ -52,11 +64,16 @@ def lambda_handler(event, context):
         db = connect_to_database()
         bucket = bucket_name("transform")
 
-        existing_s3_files = list_existing_s3_files(bucket)
-        # print(existing_s3_files)
+        s3 = boto3.client("s3")
+        extract_bucket = bucket_name("extract", client=s3)
+        transform_bucket = bucket_name("transform", client=s3)
+
+        existing_s3_files = list_existing_s3_files(transform_bucket, client=s3)
+        dims_to_build = [d for d in IMMUTABLE_DIMS if d not in existing_s3_files]
+        since = datetime.min if dims_to_build else get_watermark(transform_bucket, s3)
 
         dict_of_df = read_from_s3_subfolder_to_df(
-            TABLES, bucket_name("extract"), client=boto3.client("s3")
+            TABLES, extract_bucket, client=s3, since=since
         )
 
         immutable_df_dict = {
@@ -67,7 +84,7 @@ def lambda_handler(event, context):
             "dim_design": create_dim_design(dict_of_df),
             "dim_transaction": create_dim_transaction(dict_of_df),
             "dim_payment_type": create_dim_payment_type(dict_of_df),
-        }
+        } if dims_to_build else {}
 
         mutable_df_dict = {
             "fact_sales_order": create_fact_sales_order(dict_of_df),
@@ -75,13 +92,14 @@ def lambda_handler(event, context):
             "fact_payment": create_fact_payment(dict_of_df),
             "dim_currency": create_dim_currency(dict_of_df),
         }
-        print(immutable_df_dict.values())
-        print(mutable_df_dict.values())
+
         status = process_to_parquet_and_upload_to_s3(
-            existing_s3_files, immutable_df_dict, mutable_df_dict, bucket
+            existing_s3_files, immutable_df_dict, mutable_df_dict, transform_bucket
         )
 
-        if not status["uploaded"]:
+        if status["uploaded"]:
+            set_watermark(transform_bucket, datetime.utcnow(), s3)
+        else:
             logger.info("No dataframes written to the bucket.")
             return {
                 "statusCode": 204,
@@ -176,15 +194,33 @@ def connect_to_database() -> Connection:
         raise DBConnectionException("Failed to connect to database")
 
 
-def read_from_s3_subfolder_to_df(tables, bucket, client=boto3.client("s3")):
+def get_watermark(bucket, client):
+    try:
+        obj = client.get_object(Bucket=bucket, Key=_WATERMARK_KEY)
+        return datetime.fromisoformat(obj["Body"].read().decode())
+    except ClientError:
+        return datetime.min
+
+
+def set_watermark(bucket, timestamp, client):
+    client.put_object(
+        Bucket=bucket,
+        Key=_WATERMARK_KEY,
+        Body=timestamp.isoformat().encode(),
+    )
+
+
+def read_from_s3_subfolder_to_df(tables, bucket, client=boto3.client("s3"), since=datetime.min):
     table_dfs = {}
     for table in tables:
         response = client.list_objects_v2(Bucket=bucket, Prefix=table)
         list_of_df = []
-        for obj in response["Contents"]:
-            obj_response = client.get_object(Bucket=bucket, Key=obj["Key"])
-            list_of_df.append(pd.read_csv(obj_response["Body"]))
-        table_dfs[table] = pd.concat(list_of_df)
+        for obj in response.get("Contents", []):
+            if obj["LastModified"].replace(tzinfo=None) > since:
+                obj_response = client.get_object(Bucket=bucket, Key=obj["Key"])
+                list_of_df.append(pd.read_csv(obj_response["Body"]))
+        if list_of_df:
+            table_dfs[table] = pd.concat(list_of_df)
     return table_dfs
 
 
