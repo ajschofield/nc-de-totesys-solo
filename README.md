@@ -1,6 +1,3 @@
-> [!NOTE]
-> Considering that myself and my team have graduated from the Northcoders Data Engineering course, this project will be archived and made read-only.
-
 # ToteSys - Data Engineering Project
 
 [![Watch the original video](https://i.vimeocdn.com/video/2100752829-544887375b36d021cc07570a6c9c09ae03f2abf5e4486eca6990999cbd30bb6a-d_640?region=us)](https://vimeo.com/1149980207)
