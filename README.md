@@ -29,8 +29,8 @@ All of the above infrastructure is defined in Terraform.
 
 ## Project Status
 
-The original `totesys` database used to extract the data from no longer exists - 
-they were provisioned solely for the duration of the final project during the bootcamp.
+The original `totesys` database and the deployed AWS setup no longer exist - 
+both were provisioned solely for the duration of the final project during the bootcamp.
 In addition, the code in this repository remains as the team left it, and has
 many issues:
 
