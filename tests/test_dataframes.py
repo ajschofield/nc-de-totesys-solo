@@ -243,16 +243,11 @@ class TestCreateDimTransaction:
         dict_df = {
             "transaction": pd.DataFrame(
                 data=[["some_time", "some_other_time", 1, "SE18 9QO"]],
-                columns=[
-                    "created_at",
-                    "last_updated",
-                    "transaction_id",
-                    "some_other_id",
-                ],
+                columns=["transaction_id", "transaction_type", "sales_order_id", "purchase_order_id"]
             )
         }
         result = create_dim_transaction(dict_df)
-        assert list(result.columns) == ["transaction_id", "some_other_id"]
+        assert list(result.columns) == ["transaction_id", "transaction_type", "sales_order_id", "purchase_order_id"]
 
 
 class TestCreateFactPayment:
