@@ -1,5 +1,6 @@
+import xml.etree.ElementTree as et
+
 import pandas as pd
-from bs4 import BeautifulSoup
 import requests
 
 # Table names:
@@ -198,7 +199,6 @@ def create_dim_counterparty(dict_of_df):
             "counterparty_legal_address_id",
             "created_at",
             "last_updated",
-            "commercial_contact",
             "delivery_contact",
         ],
         axis=1,
@@ -239,23 +239,37 @@ def create_dim_date(dict_of_df):
 # tests passed
 
 
-def scrape_currency_names():
-    response = requests.get("https://www.xe.com/currency/").content
-    soup = BeautifulSoup(response, "html.parser")
-    currency = [
-        item.text for item in soup.findAll("a", attrs={"class": "sc-299dec64-6 fZPTSw"})
-    ]
-    sr = pd.Series(currency)
-    df_cur = sr.str.split(pat=" - ", expand=True).rename(
-        {0: "currency_code", 1: "currency_name"}, axis=1
+def get_currency_names():
+    response = requests.get(
+        "https://www.six-group.com/dam/download/financial-information/data-center/iso-currrency/lists/list-one.xml"
     )
+    response.raise_for_status()
+
+    root = et.fromstring(response.content)
+
+    data = []
+
+    for c in root.findall(".//CcyNtry"):
+        currency_code = c.find("Ccy")
+        currency_country = c.find("CtryNm")
+
+        if currency_code is not None and currency_country is not None:
+            data.append(
+                {
+                    "currency_code": currency_code.text,
+                    "currency_name": currency_country.text,
+                }
+            )
+
+    df_cur = pd.DataFrame(data).drop_duplicates().reset_index(drop=True)
+
     return df_cur
 
 
 # tests passed
 
 
-def create_dim_currency(dict_of_df, names=scrape_currency_names()):
+def create_dim_currency(dict_of_df, names=get_currency_names()):
     df_cur = dict_of_df["currency"].drop(labels=["created_at", "last_updated"], axis=1)
     dim_currency = pd.merge(
         df_cur, names, left_on="currency_code", right_on="currency_code", how="left"

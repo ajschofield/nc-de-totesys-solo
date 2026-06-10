@@ -109,16 +109,20 @@ class TestCreatePaymentType:
 
 class TestCreateDimCounterparty:
     def test_create_dim_counterparty_type_returns_correct_columns_and_object(self):
-        data_l = pd.DataFrame(
-            data={
-                "counterparty_id": ["Hello", "Bye"],
-                "counterparty_legal_name": ["Hello", "Bye"],
-                "commercial_contact": ["Hello", "Bye"],
-                "legal_address_id": ["bond street", "regent street"],
+        data_l = pd.DataFrame(data={
+            "counterparty_id": ["Hello", "Bye"],
+            "counterparty_legal_name": ["Hello", "Bye"],
+            "commercial_contact": ["Hello", "Bye"],
+            "delivery_contact": ["Hello", "Bye"],
+            "created_at": ["some_time", "some_time"],
+            "last_updated": ["some_time", "some_time"],
+            "legal_address_id": ["bond street", "regent street"],
             }
         )
         data_a = pd.DataFrame(
             data={
+                "created_at": ["some_time", "some_other_time"],
+                "last_updated": ["some_time", "some_other_time"],
                 "address_id": ["bond street", "regent street"],
                 "postcode": [98365, 93753],
             }
@@ -168,8 +172,8 @@ class TestCreateDimCurrency:
         assert isinstance(result, pd.DataFrame)
         assert result.equals(expected_df)
 
-    def test_scrape_currency_names_returns_dataframe_with_correct_collumns(self):
-        result = scrape_currency_names()
+    def test_get_currency_names_returns_dataframe_with_correct_collumns(self):
+        result = get_currency_names()
         assert isinstance(result, pd.DataFrame)
         assert list(result.columns) == ["currency_code", "currency_name"]
 
@@ -211,9 +215,9 @@ class TestCreateDimDate:
                 "quarter",
             ],
         )
-        with patch("src.dataframes.create_fact_payment") as mock_fp:
-            with patch("src.dataframes.create_fact_purchase_orders") as mock_fpo:
-                with patch("src.dataframes.create_fact_sales_order") as mock_fso:
+        with patch("src.transform_lambda.dataframes.create_fact_payment") as mock_fp:
+            with patch("src.transform_lambda.dataframes.create_fact_purchase_orders") as mock_fpo:
+                with patch("src.transform_lambda.dataframes.create_fact_sales_order") as mock_fso:
                     mock_fp.return_value = df_one
                     mock_fpo.return_value = df_two
                     mock_fso.return_value = df_three
@@ -239,16 +243,11 @@ class TestCreateDimTransaction:
         dict_df = {
             "transaction": pd.DataFrame(
                 data=[["some_time", "some_other_time", 1, "SE18 9QO"]],
-                columns=[
-                    "created_at",
-                    "last_updated",
-                    "transaction_id",
-                    "some_other_id",
-                ],
+                columns=["transaction_id", "transaction_type", "sales_order_id", "purchase_order_id"]
             )
         }
         result = create_dim_transaction(dict_df)
-        assert list(result.columns) == ["transaction_id", "some_other_id"]
+        assert list(result.columns) == ["transaction_id", "transaction_type", "sales_order_id", "purchase_order_id"]
 
 
 class TestCreateFactPayment:
@@ -264,7 +263,12 @@ class TestCreateFactPayment:
                             "2022-12-14 16:20:49.962194", "%Y-%m-%d %H:%M:%S.%f"
                         ),
                         1,
-                        "SE18 9QO",
+                        3,
+                        2,
+                        100.00,
+                        1,
+                        1,
+                        True,
                         "2020-07-16",
                     ]
                 ],
@@ -272,25 +276,35 @@ class TestCreateFactPayment:
                     "created_at",
                     "last_updated",
                     "payment_id",
-                    "some_other_id",
+                    "transaction_id",
+                    "counterparty_id",
+                    "payment_amount",
+                    "currency_id",
+                    "payment_type_id",
+                    "paid",
                     "payment_date",
                 ],
             )
         }
         expected_cols = [
             "payment_record_id",
+            "payment_id",
             "created_date",
             "created_time",
             "last_updated_date",
             "last_updated_time",
+            "transaction_id",
+            "counterparty_id",
+            "payment_amount",
+            "currency_id",
+            "payment_type_id",
+            "paid",
             "payment_date",
-            "payment_id",
-            "some_other_id",
         ]
         result = create_fact_payment(dict_df)
         assert isinstance(result, pd.DataFrame)
         for col in list(result.columns):
             assert col in expected_cols
         for col in expected_cols:
-            if "_date" or "_time" in col:
+            if ("_date" in col or "_time" in col) and col != "payment_date":
                 assert result[col].dtype == "O"

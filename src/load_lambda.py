@@ -131,7 +131,7 @@ def get_latest_timestamp(existing_files):
                 datetime_str = "".join(match.group(1, 2))
                 all_datetimes.append(dt.strptime(datetime_str, "%Y/%m/%d/%H:%M:%S"))
         return max(all_datetimes) if all_datetimes else dt.min
-    return existing_files
+    return dt.min
 
 
 def convert_parquet_files_to_dfs(bucket_name=None, client=None):

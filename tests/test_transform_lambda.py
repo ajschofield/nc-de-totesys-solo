@@ -293,7 +293,8 @@ class TestLambdaHandler:
                        Body=mock_csv)
 
         with patch('src.transform_lambda.transform_lambda.read_from_s3_subfolder_to_df') as mock_read, \
-            patch('src.transform_lambda.transform_lambda.bucket_name', return_value="dummy_extract_buc") as mock_bucket_name:
+            patch('src.transform_lambda.transform_lambda.bucket_name', return_value="dummy_extract_buc") as mock_bucket_name, \
+            patch('src.transform_lambda.transform_lambda.list_existing_s3_files', return_value=[]):
             
             mock_read.return_value = {'sample_mock_table': pd.read_csv(io.StringIO(mock_csv))}
 
@@ -302,6 +303,6 @@ class TestLambdaHandler:
             mock_read.assert_called_once()
 
             args, kwargs = mock_read.call_args
-            assert kwargs.get('bucket') == mock_bucket_name.return_value
+            assert args[1] == mock_bucket_name.return_value
         
 
