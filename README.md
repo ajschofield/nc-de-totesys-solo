@@ -1,17 +1,17 @@
 # ToteSys - Data Engineering Project
 
+# About this fork
+
+This is an actively developed fork of a group project completed during
+the Northcoders Data Engineering bootcamp. The original repository is
+archived and read-only, but this fork is maintained by myself.
+
 # Summary
-The project aims to implement a data platform that can extract data from an
-operational database, archive it in a data lake, and make it easily accessible
-within a remodelled OLAP data warehouse.
+An ETL pipeline that extracts data from the `totesys` operational database
+(PostgreSQL), lands it in object storage as CSV, transforms it into a star schema, and then loads it back into a PostgreSQL data warehouse.
 
-The solution showcases our skills in:
-
-- Python
-- PostgreSQL
-- Database modelling
-- Amazon Web Services (AWS)
-- Agile methodologies
+The original stack used: Python, PostgrSQL, AWS (Lambda, S3, EventBridge,
+Secrets Manager, CloudWatch), Terraform, GitHub Actions, pytest
 
 # Main Objectives
 
