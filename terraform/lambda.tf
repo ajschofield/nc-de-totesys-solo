@@ -81,6 +81,7 @@ resource "aws_lambda_function" "extract_lambda" {
   role             = aws_iam_role.multi_service_role.arn
   handler          = "extract_lambda.lambda_handler"
   runtime          = "python3.13"
+  memory_size      = 256
   source_code_hash = data.archive_file.extract_lambda_zip.output_base64sha256
   timeout          = 180
 
@@ -117,6 +118,7 @@ resource "aws_lambda_function" "transform_lambda" {
   role             = aws_iam_role.multi_service_role.arn
   handler          = "transform_lambda.lambda_handler"
   runtime          = "python3.13"
+  memory_size      = 512
   source_code_hash = data.archive_file.transform_lambda_zip.output_base64sha256
   timeout          = 180
 
@@ -151,6 +153,7 @@ resource "aws_lambda_function" "load_lambda" {
   role             = aws_iam_role.multi_service_role.arn
   handler          = "load_lambda.lambda_handler"
   runtime          = "python3.13"
+  memory_size      = 512
   source_code_hash = data.archive_file.load_lambda_zip.output_base64sha256
   timeout          = 180
 
