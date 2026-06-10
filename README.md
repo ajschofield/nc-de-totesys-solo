@@ -11,9 +11,18 @@ An ETL pipeline that extracts data from the `totesys` operational database
 The original stack used: Python, PostgrSQL, AWS (Lambda, S3, EventBridge,
 Secrets Manager, CloudWatch), Terraform, GitHub Actions, pytest
 
-#
+## Original Pipeline Flow
 
+1. Scheduled trigger using EventBridge (every 30 minutes) invokes the `extract`
+   function, which queries `totesys` for new or updated rows and writes CSVs
+   to an ingestion bucket
+2. An object-created event triggers the `transform` function, which remodels
+   the data into dimension and fact tables and writes Parquet files to a second
+   bucket
+3. A second object-created event triggers the `load` function, which loads the
+   Parquet files into the warehouse schema
 
+All of the above infrastructure is defined in Terraform.
 
 # Main Objectives
 
