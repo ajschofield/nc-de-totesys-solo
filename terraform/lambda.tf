@@ -36,7 +36,7 @@ resource "aws_s3_object" "lambda_layer_zip_01" {
 
 resource "aws_lambda_layer_version" "lambda_layer_01" {
   layer_name          = local.layer_name_01
-  compatible_runtimes = ["python3.11"]
+  compatible_runtimes = ["python3.13"]
   s3_bucket           = aws_s3_bucket.lambda_code_bucket.bucket
   s3_key              = aws_s3_object.lambda_layer_zip_01.key
   source_code_hash    = fileexists(local.layer_zip_01_path) ? filebase64sha256(local.layer_zip_01_path) : null
@@ -57,7 +57,7 @@ resource "aws_s3_object" "lambda_layer_zip_02" {
 
 resource "aws_lambda_layer_version" "lambda_layer_02" {
   layer_name          = local.layer_name_02
-  compatible_runtimes = ["python3.11"]
+  compatible_runtimes = ["python3.13"]
   s3_bucket           = aws_s3_bucket.lambda_code_bucket.bucket
   s3_key              = aws_s3_object.lambda_layer_zip_02.key
   source_code_hash    = fileexists(local.layer_zip_02_path) ? filebase64sha256(local.layer_zip_02_path) : null
@@ -87,7 +87,7 @@ resource "aws_lambda_function" "extract_lambda" {
   layers           = [aws_lambda_layer_version.lambda_layer_01.arn]
   role             = aws_iam_role.multi_service_role.arn
   handler          = "extract_lambda.lambda_handler"
-  runtime          = "python3.11"
+  runtime          = "python3.13"
   source_code_hash = data.archive_file.extract_lambda_zip.output_base64sha256
   timeout          = 180
 
@@ -123,7 +123,7 @@ resource "aws_lambda_function" "transform_lambda" {
   layers           = [aws_lambda_layer_version.lambda_layer_02.arn]
   role             = aws_iam_role.multi_service_role.arn
   handler          = "transform_lambda.lambda_handler"
-  runtime          = "python3.11"
+  runtime          = "python3.13"
   source_code_hash = data.archive_file.transform_lambda_zip.output_base64sha256
   timeout          = 180
 
@@ -157,7 +157,7 @@ resource "aws_lambda_function" "load_lambda" {
   layers           = [aws_lambda_layer_version.lambda_layer_02.arn]
   role             = aws_iam_role.multi_service_role.arn
   handler          = "load_lambda.lambda_handler"
-  runtime          = "python3.11"
+  runtime          = "python3.13"
   source_code_hash = data.archive_file.load_lambda_zip.output_base64sha256
   timeout          = 180
 
