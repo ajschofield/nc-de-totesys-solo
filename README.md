@@ -39,7 +39,8 @@ many issues:
    it should be done incrementally
 3. Transforming currency depends on scraping `xe.com` in a really weird way - it's
    more akin to a workaround
-4. Whilst the testing suite is sufficient, it has known failures and skipped tests
+4. Whilst the test suite has reasonable coverage, but contains known failures,
+   skipped tests, and other issues
 
 # Project Presentation
 
