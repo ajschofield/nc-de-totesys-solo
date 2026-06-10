@@ -199,7 +199,6 @@ def create_dim_counterparty(dict_of_df):
             "counterparty_legal_address_id",
             "created_at",
             "last_updated",
-            "commercial_contact",
             "delivery_contact",
         ],
         axis=1,
