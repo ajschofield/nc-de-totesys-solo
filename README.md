@@ -2,7 +2,7 @@
 
 This is an actively developed fork of a group project completed during
 the Northcoders Data Engineering bootcamp. The original repository is
-archived and read-only, but this fork is maintained by myself.
+archived and read-only, but this fork is maintained by me.
 
 You can find the original project source code [here](https://github.com/ajschofield/de-project-bentley).
 
