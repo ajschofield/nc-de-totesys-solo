@@ -40,57 +40,6 @@ many issues:
    more akin to a workaround
 4. Whilst the testing suite is sufficient, it has known failures and skipped tests
 
-# Original Contributors
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/ellsymonds">
-        <img src="https://github.com/ellsymonds.png" width="100px;" alt="ellsymonds"/>
-        <br />
-        <sub><b>Ellie Symonds</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/lian-manonog">
-        <img src="https://github.com/lian-manonog.png" width="100px;" alt="lian-manonog"/>
-        <br />
-        <sub><b>Lianmei Manon-og</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/T-Aji">
-        <img src="https://github.com/T-Aji.png" width="100px;" alt="T-Aji"/>
-        <br />
-        <sub><b>Tolu Ajibade</b></sub>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/HastarTara">
-        <img src="https://github.com/HastarTara.png" width="100px;" alt="HastarTara"/>
-        <br />
-        <sub><b>Joslin Rashleigh</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/bulve-ad">
-        <img src="https://github.com/bulve-ad.png" width="100px;" alt="bulve-ad"/>
-        <br />
-        <sub><b>Anzelika Belotelova</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/ajschofield">
-        <img src="https://github.com/ajschofield.png" width="100px;" alt="ajschofield"/>
-        <br />
-        <sub><b>Alex Schofield</b></sub>
-      </a>
-    </td>
-  </tr>
-</table>
-
 # Project Presentation
 
 Watch the original video [here](https://vimeo.com/1149980207).
