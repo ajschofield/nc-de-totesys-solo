@@ -1,7 +1,5 @@
 # ToteSys - Data Engineering Project
 
-# About this fork
-
 This is an actively developed fork of a group project completed during
 the Northcoders Data Engineering bootcamp. The original repository is
 archived and read-only, but this fork is maintained by myself.
@@ -12,6 +10,10 @@ An ETL pipeline that extracts data from the `totesys` operational database
 
 The original stack used: Python, PostgrSQL, AWS (Lambda, S3, EventBridge,
 Secrets Manager, CloudWatch), Terraform, GitHub Actions, pytest
+
+#
+
+
 
 # Main Objectives
 
