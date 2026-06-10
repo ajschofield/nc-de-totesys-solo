@@ -9,7 +9,7 @@ import pandas as pd
 from moto import mock_aws
 from botocore.exceptions import ClientError
 import pytest
-from src.transform_lambda.transform_lambda import read_from_s3_subfolder_to_df, list_existing_s3_files, bucket_name, process_to_parquet_and_upload_to_s3, lambda_handler
+from src.transform_lambda.transform_lambda import read_from_s3_subfolder_to_df, list_existing_s3_files, bucket_name, process_to_parquet_and_upload_to_s3, lambda_handler, get_watermark, set_watermark
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -284,6 +284,33 @@ class TestProcessToParquetUploadS3:
         )
 
         assert response == {"uploaded": [], "not_uploaded": []}
+
+class TestWatermark:
+    def test_get_watermark_returns_datetime_min_if_no_marker(self, s3_client, mock_transform_bucket):
+        result = get_watermark("dummy_transform_buc", s3_client)
+        assert result == datetime.min
+
+    def test_set_watermark_then_get_returns_same_timestamp(self, s3_client, mock_transform_bucket):
+        ts = datetime(2024, 8, 21, 12, 0, 0)
+        set_watermark("dummy_transform_buc", ts, s3_client)
+        assert get_watermark("dummy_transform_buc", s3_client) == ts
+
+
+class TestReadFromS3WithSince:
+    def test_filters_out_objects_older_than_since(self, s3_client, mock_extract_bucket):
+        s3_client.upload_file(
+            "tests/dummy_identical.csv",
+            "dummy_extract_buc",
+            "Foods/2024/08/21/Foods_12:03:10.csv",
+        )
+        future = datetime(9999, 1, 1)
+        result = read_from_s3_subfolder_to_df(["Foods"], bucket="dummy_extract_buc", client=s3_client, since=future)
+        assert "Foods" not in result
+
+    def test_includes_objects_when_since_is_min(self, s3_client, mock_extract_bucket):
+        result = read_from_s3_subfolder_to_df(["Foods"], bucket="dummy_extract_buc", client=s3_client, since=datetime.min)
+        assert "Foods" in result
+
 
 class TestLambdaHandler:
     def test_func_reads_from_extract_bucket(self, s3_client, mock_db_connection, mock_extract_bucket, mock_transform_bucket):
