@@ -168,8 +168,8 @@ class TestCreateDimCurrency:
         assert isinstance(result, pd.DataFrame)
         assert result.equals(expected_df)
 
-    def test_scrape_currency_names_returns_dataframe_with_correct_collumns(self):
-        result = scrape_currency_names()
+    def test_get_currency_names_returns_dataframe_with_correct_collumns(self):
+        result = get_currency_names()
         assert isinstance(result, pd.DataFrame)
         assert list(result.columns) == ["currency_code", "currency_name"]
 
