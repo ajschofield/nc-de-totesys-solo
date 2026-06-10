@@ -10,6 +10,8 @@ from src.load_lambda import (
     connect_to_db_and_return_engine,
     convert_parquet_files_to_dfs,
     get_transform_bucket,
+    get_load_markers,
+    set_load_markers,
     upload_dfs_to_database,
 )
 import tempfile
@@ -219,13 +221,77 @@ class TestUploadDfsToDatabase:
     def test_function_returns_dictionary_with_uploaded_and_not_uploaded_keys(
         mock_engine, mock_df
     ):
+        mock_s3 = MagicMock()
+        mock_s3.list_buckets.return_value = {"Buckets": [{"Name": "transform-bucket"}]}
+        mock_s3.get_object.side_effect = botocore.exceptions.ClientError(
+            {"Error": {"Code": "NoSuchKey", "Message": ""}}, "GetObject"
+        )
+
         with patch(
             "src.load_lambda.convert_parquet_files_to_dfs",
             return_value={"dim_counterparty.parquet": mock_df},
         ), patch(
             "src.load_lambda.connect_to_db_and_return_engine", return_value=mock_engine
+        ), patch(
+            "src.load_lambda.dim_table_is_empty", return_value=True
         ):
-            result = upload_dfs_to_database()
+            result = upload_dfs_to_database(s3_client=mock_s3)
 
             assert "uploaded" in result
             assert "not_uploaded" in result
+
+    @staticmethod
+    def test_dim_skipped_when_table_already_has_rows(mock_engine, mock_df):
+        mock_s3 = MagicMock()
+        mock_s3.list_buckets.return_value = {"Buckets": [{"Name": "transform-bucket"}]}
+        mock_s3.get_object.side_effect = botocore.exceptions.ClientError(
+            {"Error": {"Code": "NoSuchKey", "Message": ""}}, "GetObject"
+        )
+
+        with patch(
+            "src.load_lambda.convert_parquet_files_to_dfs",
+            return_value={"dim_counterparty.parquet": mock_df},
+        ), patch(
+            "src.load_lambda.connect_to_db_and_return_engine", return_value=mock_engine
+        ), patch(
+            "src.load_lambda.dim_table_is_empty", return_value=False
+        ):
+            result = upload_dfs_to_database(s3_client=mock_s3)
+
+        mock_df.to_sql.assert_not_called()
+        assert "dim_counterparty" in result["not_uploaded"]
+
+    @staticmethod
+    def test_fact_skipped_when_s3_key_already_in_markers(mock_engine, mock_df):
+        fact_key = "fact_sales_order/2024/08/21/fact_sales_order_12:00:00.parquet"
+        mock_s3 = MagicMock()
+        mock_s3.list_buckets.return_value = {"Buckets": [{"Name": "transform-bucket"}]}
+
+        with patch(
+            "src.load_lambda.convert_parquet_files_to_dfs",
+            return_value={fact_key: mock_df},
+        ), patch(
+            "src.load_lambda.connect_to_db_and_return_engine", return_value=mock_engine
+        ), patch(
+            "src.load_lambda.get_load_markers",
+            return_value={"fact_sales_order": fact_key},
+        ):
+            result = upload_dfs_to_database(s3_client=mock_s3)
+
+        mock_df.to_sql.assert_not_called()
+        assert "fact_sales_order" in result["not_uploaded"]
+
+
+class TestLoadMarkers:
+    def test_get_load_markers_returns_empty_dict_if_no_marker(self, mock_s3_client):
+        mock_s3_client.create_bucket(
+            Bucket="test-markers-bucket",
+            CreateBucketConfiguration={"LocationConstraint": "eu-west-2"},
+        )
+        result = get_load_markers("test-markers-bucket", mock_s3_client)
+        assert result == {}
+
+    def test_set_then_get_returns_same_markers(self, mock_s3_client):
+        markers = {"fact_sales_order": "fact_sales_order/2024/08/21/fact_sales_order_12:00:00.parquet"}
+        set_load_markers("test-markers-bucket", markers, mock_s3_client)
+        assert get_load_markers("test-markers-bucket", mock_s3_client) == markers
