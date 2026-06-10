@@ -24,6 +24,19 @@ Secrets Manager, CloudWatch), Terraform, GitHub Actions, pytest
 
 All of the above infrastructure is defined in Terraform.
 
+## Project Status
+
+The original `totesys` database used to extract the data from no longer exists - 
+they were provisioned solely for the duration of the final project during the bootcamp.
+In addition, the code in this repository remains as the team left it, and has
+many issues:
+
+1. Loading is not idempotent - re-runs have the potential to duplicate dimension rows
+2. The transform step reprocesses all historical files on every run, when ideally
+   it should be done incrementally
+3. Transforming currency depends on scraping `xe.com` in a really weird way - it's
+   more akin to a workaround
+4. Whilst the testing suite is sufficient, it has known failures and skipped tests
 
 # Original Contributors
 
