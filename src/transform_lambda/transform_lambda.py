@@ -180,10 +180,10 @@ def read_from_s3_subfolder_to_df(tables, bucket, client=boto3.client("s3")):
     table_dfs = {}
     for table in tables:
         response = client.list_objects_v2(Bucket=bucket, Prefix=table)
-        list_of_keys = [
-            "s3://" + bucket + "/" + object["Key"] for object in response["Contents"]
-        ]
-        list_of_df = [pd.read_csv(key) for key in list_of_keys]
+        list_of_df = []
+        for obj in response["Contents"]:
+            obj_response = client.get_object(Bucket=bucket, Key=obj["Key"])
+            list_of_df.append(pd.read_csv(obj_response["Body"]))
         table_dfs[table] = pd.concat(list_of_df)
     return table_dfs
 
