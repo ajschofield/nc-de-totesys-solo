@@ -1,97 +1,47 @@
-> [!NOTE]
-> Considering that myself and my team have graduated from the Northcoders Data Engineering course, this project will be archived and made read-only.
-
 # ToteSys - Data Engineering Project
-[![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)](https://www.python.org/)
-[![AWS](https://img.shields.io/badge/Amazon_AWS-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
-[![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)](https://www.terraform.io/)
-[![Postgresql](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/features/actions)
 
-[![Watch the video](https://i.vimeocdn.com/video/2100752829-544887375b36d021cc07570a6c9c09ae03f2abf5e4486eca6990999cbd30bb6a-d_640?region=us)](https://vimeo.com/1149980207)
+This is an actively developed fork of a group project completed during
+the Northcoders Data Engineering bootcamp. The original repository is
+archived and read-only, but this fork is maintained by me.
 
-# Contributors
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/ellsymonds">
-        <img src="https://github.com/ellsymonds.png" width="100px;" alt="ellsymonds"/>
-        <br />
-        <sub><b>Ellie Symonds</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/lian-manonog">
-        <img src="https://github.com/lian-manonog.png" width="100px;" alt="lian-manonog"/>
-        <br />
-        <sub><b>Lianmei Manon-og</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/T-Aji">
-        <img src="https://github.com/T-Aji.png" width="100px;" alt="T-Aji"/>
-        <br />
-        <sub><b>Tolu Ajibade</b></sub>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/HastarTara">
-        <img src="https://github.com/HastarTara.png" width="100px;" alt="HastarTara"/>
-        <br />
-        <sub><b>Joslin Rashleigh</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/bulve-ad">
-        <img src="https://github.com/bulve-ad.png" width="100px;" alt="bulve-ad"/>
-        <br />
-        <sub><b>Anzelika Belotelova</b></sub>
-      </a>
-    </td>
-    <td align="center">
-      <a href="https://github.com/ajschofield">
-        <img src="https://github.com/ajschofield.png" width="100px;" alt="ajschofield"/>
-        <br />
-        <sub><b>Alex Schofield</b></sub>
-      </a>
-    </td>
-  </tr>
-</table>
+You can find the original project source code [here](https://github.com/ajschofield/de-project-bentley).
 
-# Summary
-The project aims to implement a data platform that can extract data from an
-operational database, archive it in a data lake, and make it easily accessible
-within a remodelled OLAP data warehouse.
+# Overview
+An ETL pipeline that extracts data from the `totesys` operational database
+(PostgreSQL), lands it in object storage as CSV, transforms it into a star schema,
+and then loads it into a PostgreSQL data warehouse.
 
-The solution showcases our skills in:
+The original stack used: Python, PostgreSQL, AWS (Lambda, S3, EventBridge,
+Secrets Manager, CloudWatch), Terraform, GitHub Actions, pytest
 
-- Python
-- PostgreSQL
-- Database modelling
-- Amazon Web Services (AWS)
-- Agile methodologies
+## Original Pipeline Flow
 
-# Main Objectives
+1. Scheduled trigger using EventBridge (every 30 minutes) invokes the `extract`
+   function, which queries `totesys` for new or updated rows and writes CSVs
+   to an ingestion bucket
+2. An object-created event triggers the `transform` function, which remodels
+   the data into dimension and fact tables and writes Parquet files to a second
+   bucket
+3. A second object-created event triggers the `load` function, which loads the
+   Parquet files into the warehouse schema
 
-Our goal is to create a reliable ETL (Extract, Transform, Load) pipeline that
-can:
+All of the above infrastructure is defined in Terraform.
 
-1. Extract the data from the `totesys` operational database
-2. Store the data in AWS S3 buckets - this will be our data lake
-3. Transform the data into a suitable schema for the data warehouse
-4. Load the transformed data into the data warehouse hosted on AWS
+## Project Status
 
-# Key Features
+The original `totesys` database and the deployed AWS setup no longer exist - 
+both were provisioned solely for the duration of the final project during the bootcamp.
+In addition, the code in this repository remains as the team left it, and has
+many issues:
 
-We aim for the project to have certain features. Some are more prioritised than
-others.
+1. Loading is not idempotent - re-runs have the potential to duplicate dimension rows
+2. The transform step reprocesses all historical files on every run, when ideally
+   it should be done incrementally
+3. Transforming currency depends on scraping `xe.com` in a really weird way - it's
+   more akin to a workaround
+4. Whilst the test suite has reasonable coverage, but contains known failures,
+   skipped tests, and other issues
 
-- Automated data ingestion from `totesys` db
-- Data storage for ingested and processed data in S3 buckets
-- Data transformation for data warehouse schema
-- Automated data loading into the data warehouse schema
-- Logging and monitoring with CloudWatch
-- Notifications for errors and successful runs (e.g. successful ingestion)
-- Visualisation of warehouse data
+# Project Presentation
+
+Watch the original video [here](https://vimeo.com/1149980207).
