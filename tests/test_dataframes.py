@@ -263,7 +263,12 @@ class TestCreateFactPayment:
                             "2022-12-14 16:20:49.962194", "%Y-%m-%d %H:%M:%S.%f"
                         ),
                         1,
-                        "SE18 9QO",
+                        3,
+                        2,
+                        100.00,
+                        1,
+                        1,
+                        True,
                         "2020-07-16",
                     ]
                 ],
@@ -271,25 +276,35 @@ class TestCreateFactPayment:
                     "created_at",
                     "last_updated",
                     "payment_id",
-                    "some_other_id",
+                    "transaction_id",
+                    "counterparty_id",
+                    "payment_amount",
+                    "currency_id",
+                    "payment_type_id",
+                    "paid",
                     "payment_date",
                 ],
             )
         }
         expected_cols = [
             "payment_record_id",
+            "payment_id",
             "created_date",
             "created_time",
             "last_updated_date",
             "last_updated_time",
+            "transaction_id",
+            "counterparty_id",
+            "payment_amount",
+            "currency_id",
+            "payment_type_id",
+            "paid",
             "payment_date",
-            "payment_id",
-            "some_other_id",
         ]
         result = create_fact_payment(dict_df)
         assert isinstance(result, pd.DataFrame)
         for col in list(result.columns):
             assert col in expected_cols
         for col in expected_cols:
-            if "_date" or "_time" in col:
+            if ("_date" in col or "_time" in col) and col != "payment_date":
                 assert result[col].dtype == "O"
