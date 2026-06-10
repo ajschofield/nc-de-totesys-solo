@@ -6,9 +6,12 @@ from io import BytesIO
 import logging
 import json
 import traceback
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from datetime import datetime as dt
 import re
+
+_LOAD_MARKERS_KEY = "_load_markers.json"
+_SCHEMA = "project_team_2"
 
 logger = logging.getLogger(__name__)
 
@@ -201,75 +204,104 @@ def convert_parquet_files_to_dfs(bucket_name=None, client=None):
     return dfs
 
 
-def upload_dfs_to_database():
+def get_load_markers(bucket, client):
+    try:
+        obj = client.get_object(Bucket=bucket, Key=_LOAD_MARKERS_KEY)
+        return json.loads(obj["Body"].read())
+    except ClientError:
+        return {}
+
+
+def set_load_markers(bucket, markers, client):
+    client.put_object(
+        Bucket=bucket,
+        Key=_LOAD_MARKERS_KEY,
+        Body=json.dumps(markers).encode(),
+    )
+
+
+def dim_table_is_empty(table_name, connection):
+    result = connection.execute(
+        text(f"SELECT COUNT(*) FROM {_SCHEMA}.{table_name}")
+    )
+    return result.scalar() == 0
+
+
+def upload_dfs_to_database(s3_client=None):
+    if s3_client is None:
+        s3_client = boto3.client("s3")
+
     upload_status = {"uploaded": [], "not_uploaded": []}
     dict_of_dfs = convert_parquet_files_to_dfs()
     db_engine = connect_to_db_and_return_engine()
-    immutable_df_dict = [
+
+    transform_bucket = get_transform_bucket(client=s3_client)
+    load_markers = get_load_markers(transform_bucket, s3_client)
+
+    immutable_keys = [
         "dim_counterparty.parquet",
-        "dim_date.parquet",  # this needs to be mutable
+        "dim_date.parquet",
         "dim_location.parquet",
         "dim_staff.parquet",
         "dim_design.parquet",
-        "dim_transaction.parquet",  # This one was missing,
+        "dim_transaction.parquet",
         "dim_payment_type.parquet",
     ]
-    mutable_df_dict = [
+    mutable_prefixes = [
         "dim_currency",
         "fact_sales_order",
         "fact_purchase_order",
         "fact_payment",
     ]
+
     with db_engine.begin() as connection:
         for file_name, df in dict_of_dfs.items():
-            print(df.dtypes, "dtypes")
-            print(df.head())
-            print(file_name, "<<< FILE NAME")
-            print(immutable_df_dict, "<<<IMMUTABLE_DF_DICT")
-            if file_name in immutable_df_dict:
+            if file_name in immutable_keys:
                 table_name = file_name.split(".")[0]
-                print(table_name, "<<<<<")
                 try:
+                    if not dim_table_is_empty(table_name, connection):
+                        logger.info(f"{table_name} already loaded, skipping")
+                        upload_status["not_uploaded"].append(table_name)
+                        continue
                     df.to_sql(
                         table_name,
                         con=connection,
-                        schema="project_team_2",
+                        schema=_SCHEMA,
                         if_exists="append",
                         index=False,
                     )
                     upload_status["uploaded"].append(table_name)
-                    print(upload_status)
                 except Exception as e:
-                    logger.error(
-                        f"Error uploading dataframe {file_name} to database: {e}",
-                        exc_info=True,
-                    )
+                    logger.error(f"Error uploading {file_name}: {e}", exc_info=True)
                     raise
-            elif file_name.split("/")[0] in mutable_df_dict:
+
+            elif file_name.split("/")[0] in mutable_prefixes:
                 table_name = file_name.split("/")[0]
-                print(table_name, "<<<<<<<TABLE NAME")
+                if load_markers.get(table_name) == file_name:
+                    logger.info(f"{table_name} already loaded from {file_name}, skipping")
+                    upload_status["not_uploaded"].append(table_name)
+                    continue
                 try:
                     df.to_sql(
                         table_name,
                         con=connection,
-                        schema="project_team_2",
+                        schema=_SCHEMA,
                         if_exists="append",
                         index=False,
                     )
+                    load_markers[table_name] = file_name
                     upload_status["uploaded"].append(table_name)
                 except Exception as e:
-                    logger.error(
-                        f"Error uploading dataframe {file_name} to database: {e}",
-                        exc_info=True,
-                    )
+                    logger.error(f"Error uploading {file_name}: {e}", exc_info=True)
                     raise
+
             else:
                 upload_status["not_uploaded"].append(file_name)
-                logger.error(
-                    f"{file_name} does not correspond with table in database",
-                    exc_info=True,
-                )
-            print(upload_status)
+                logger.error(f"{file_name} does not correspond with a table in the database")
+
+    if load_markers:
+        set_load_markers(transform_bucket, load_markers, s3_client)
+
     db_engine.dispose()
     return upload_status
 
