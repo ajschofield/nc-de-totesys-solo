@@ -24,28 +24,6 @@ Secrets Manager, CloudWatch), Terraform, GitHub Actions, pytest
 
 All of the above infrastructure is defined in Terraform.
 
-# Main Objectives
-
-Our goal is to create a reliable ETL (Extract, Transform, Load) pipeline that
-can:
-
-1. Extract the data from the `totesys` operational database
-2. Store the data in AWS S3 buckets - this will be our data lake
-3. Transform the data into a suitable schema for the data warehouse
-4. Load the transformed data into the data warehouse hosted on AWS
-
-# Key Features
-
-We aim for the project to have certain features. Some are more prioritised than
-others.
-
-- Automated data ingestion from `totesys` db
-- Data storage for ingested and processed data in S3 buckets
-- Data transformation for data warehouse schema
-- Automated data loading into the data warehouse schema
-- Logging and monitoring with CloudWatch
-- Notifications for errors and successful runs (e.g. successful ingestion)
-- Visualisation of warehouse data
 
 # Original Contributors
 
