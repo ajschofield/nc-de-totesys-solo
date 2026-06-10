@@ -1,7 +1,5 @@
 # ToteSys - Data Engineering Project
 
-[![Watch the original video](https://i.vimeocdn.com/video/2100752829-544887375b36d021cc07570a6c9c09ae03f2abf5e4486eca6990999cbd30bb6a-d_640?region=us)](https://vimeo.com/1149980207)
-
 # Summary
 The project aims to implement a data platform that can extract data from an
 operational database, archive it in a data lake, and make it easily accessible
@@ -40,7 +38,7 @@ others.
 
 # Original Contributors
 
-You can find the original project [here](https://github.com/ajschofield/de-project-bentley).
+You can find the original project source code [here](https://github.com/ajschofield/de-project-bentley).
 
 <table>
   <tr>
@@ -90,3 +88,7 @@ You can find the original project [here](https://github.com/ajschofield/de-proje
     </td>
   </tr>
 </table>
+
+# Project Presentation
+
+Watch the original video [here](https://vimeo.com/1149980207).
