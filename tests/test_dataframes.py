@@ -109,16 +109,20 @@ class TestCreatePaymentType:
 
 class TestCreateDimCounterparty:
     def test_create_dim_counterparty_type_returns_correct_columns_and_object(self):
-        data_l = pd.DataFrame(
-            data={
-                "counterparty_id": ["Hello", "Bye"],
-                "counterparty_legal_name": ["Hello", "Bye"],
-                "commercial_contact": ["Hello", "Bye"],
-                "legal_address_id": ["bond street", "regent street"],
+        data_l = pd.DataFrame(data={
+            "counterparty_id": ["Hello", "Bye"],
+            "counterparty_legal_name": ["Hello", "Bye"],
+            "commercial_contact": ["Hello", "Bye"],
+            "delivery_contact": ["Hello", "Bye"],
+            "created_at": ["some_time", "some_time"],
+            "last_updated": ["some_time", "some_time"],
+            "legal_address_id": ["bond street", "regent street"],
             }
         )
         data_a = pd.DataFrame(
             data={
+                "created_at": ["some_time", "some_other_time"],
+                "last_updated": ["some_time", "some_other_time"],
                 "address_id": ["bond street", "regent street"],
                 "postcode": [98365, 93753],
             }
