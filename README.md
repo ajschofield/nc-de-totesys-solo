@@ -4,7 +4,7 @@ This is an actively developed fork of a group project completed during
 the Northcoders Data Engineering bootcamp. The original repository is
 archived and read-only, but this fork is maintained by myself.
 
-# Summary
+# Overview
 An ETL pipeline that extracts data from the `totesys` operational database
 (PostgreSQL), lands it in object storage as CSV, transforms it into a star schema, and then loads it back into a PostgreSQL data warehouse.
 
