@@ -11,7 +11,7 @@ An ETL pipeline that extracts data from the `totesys` operational database
 (PostgreSQL), lands it in object storage as CSV, transforms it into a star schema,
 and then loads it into a PostgreSQL data warehouse.
 
-The original stack used: Python, PostgrSQL, AWS (Lambda, S3, EventBridge,
+The original stack used: Python, PostgreSQL, AWS (Lambda, S3, EventBridge,
 Secrets Manager, CloudWatch), Terraform, GitHub Actions, pytest
 
 ## Original Pipeline Flow
