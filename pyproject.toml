@@ -25,6 +25,17 @@ dev = [
     "beautifulsoup4>=4.15.0",
     "requests>=2.34.2",
 ]
+# Lambda layer contents, built by scripts/make_layer_zip.sh.
+# boto3/botocore are omitted because the Lambda runtime bundles them.
+lambda-layer-01 = [
+    "pg8000>=1.31.5",
+]
+lambda-layer-02 = [
+    "pandas>=3.0.3",
+    "pyarrow>=24.0.0",
+    "pg8000>=1.31.5",
+    "sqlalchemy>=2.0.50",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

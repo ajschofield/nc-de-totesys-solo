@@ -13,13 +13,10 @@ locals {
   layer_zip_02_path = "${local.layer_dir}${local.layer_zip_02}"
 }
 
-resource "null_resource" "prepare_layer" {
-  provisioner "local-exec" {
-    command = "bash ${local.script_dir}/make_layer_zip.sh"
-  }
-  triggers = {
-    always_run = timestamp()
-  }
+# Builds the layer zips at plan time (skipped when already up to date) and
+# returns their hashes, so the files don't change between plan and apply.
+data "external" "lambda_layers" {
+  program = ["bash", "${local.script_dir}/layer_hashes.sh"]
 }
 
 ################################
@@ -29,17 +26,15 @@ resource "aws_s3_object" "lambda_layer_zip_01" {
   bucket        = aws_s3_bucket.lambda_code_bucket.id #bucket instead of id
   key           = "${local.layer_name_01}/${local.layer_zip_01}"
   source        = "${local.layer_dir}${local.layer_zip_01}"
-  depends_on    = [null_resource.prepare_layer]
-  etag          = fileexists(local.layer_zip_01_path) ? filemd5(local.layer_zip_01_path) : null
-  force_destroy = true
+  source_hash   = data.external.lambda_layers.result.layer_01_md5
 }
 
 resource "aws_lambda_layer_version" "lambda_layer_01" {
   layer_name          = local.layer_name_01
-  compatible_runtimes = ["python3.11"]
+  compatible_runtimes = ["python3.13"]
   s3_bucket           = aws_s3_bucket.lambda_code_bucket.bucket
   s3_key              = aws_s3_object.lambda_layer_zip_01.key
-  source_code_hash    = fileexists(local.layer_zip_01_path) ? filebase64sha256(local.layer_zip_01_path) : null
+  source_code_hash    = data.external.lambda_layers.result.layer_01_sha256
   depends_on          = [aws_s3_object.lambda_layer_zip_01]
 }
 
@@ -50,17 +45,15 @@ resource "aws_s3_object" "lambda_layer_zip_02" {
   bucket        = aws_s3_bucket.lambda_code_bucket.id #bucket instead of id
   key           = "${local.layer_name_02}/${local.layer_zip_02}"
   source        = "${local.layer_dir}${local.layer_zip_02}"
-  depends_on    = [null_resource.prepare_layer]
-  etag          = fileexists(local.layer_zip_02_path) ? filemd5(local.layer_zip_02_path) : null
-  force_destroy = true
+  source_hash   = data.external.lambda_layers.result.layer_02_md5
 }
 
 resource "aws_lambda_layer_version" "lambda_layer_02" {
   layer_name          = local.layer_name_02
-  compatible_runtimes = ["python3.11"]
+  compatible_runtimes = ["python3.13"]
   s3_bucket           = aws_s3_bucket.lambda_code_bucket.bucket
   s3_key              = aws_s3_object.lambda_layer_zip_02.key
-  source_code_hash    = fileexists(local.layer_zip_02_path) ? filebase64sha256(local.layer_zip_02_path) : null
+  source_code_hash    = data.external.lambda_layers.result.layer_02_sha256
   depends_on          = [aws_s3_object.lambda_layer_zip_02]
 }
 
@@ -87,7 +80,8 @@ resource "aws_lambda_function" "extract_lambda" {
   layers           = [aws_lambda_layer_version.lambda_layer_01.arn]
   role             = aws_iam_role.multi_service_role.arn
   handler          = "extract_lambda.lambda_handler"
-  runtime          = "python3.11"
+  runtime          = "python3.13"
+  memory_size      = 256
   source_code_hash = data.archive_file.extract_lambda_zip.output_base64sha256
   timeout          = 180
 
@@ -123,7 +117,8 @@ resource "aws_lambda_function" "transform_lambda" {
   layers           = [aws_lambda_layer_version.lambda_layer_02.arn]
   role             = aws_iam_role.multi_service_role.arn
   handler          = "transform_lambda.lambda_handler"
-  runtime          = "python3.11"
+  runtime          = "python3.13"
+  memory_size      = 512
   source_code_hash = data.archive_file.transform_lambda_zip.output_base64sha256
   timeout          = 180
 
@@ -157,7 +152,8 @@ resource "aws_lambda_function" "load_lambda" {
   layers           = [aws_lambda_layer_version.lambda_layer_02.arn]
   role             = aws_iam_role.multi_service_role.arn
   handler          = "load_lambda.lambda_handler"
-  runtime          = "python3.11"
+  runtime          = "python3.13"
+  memory_size      = 512
   source_code_hash = data.archive_file.load_lambda_zip.output_base64sha256
   timeout          = 180
 
