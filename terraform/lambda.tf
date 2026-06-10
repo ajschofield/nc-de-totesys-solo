@@ -27,7 +27,6 @@ resource "aws_s3_object" "lambda_layer_zip_01" {
   key           = "${local.layer_name_01}/${local.layer_zip_01}"
   source        = "${local.layer_dir}${local.layer_zip_01}"
   source_hash   = data.external.lambda_layers.result.layer_01_md5
-  force_destroy = true
 }
 
 resource "aws_lambda_layer_version" "lambda_layer_01" {
@@ -47,7 +46,6 @@ resource "aws_s3_object" "lambda_layer_zip_02" {
   key           = "${local.layer_name_02}/${local.layer_zip_02}"
   source        = "${local.layer_dir}${local.layer_zip_02}"
   source_hash   = data.external.lambda_layers.result.layer_02_md5
-  force_destroy = true
 }
 
 resource "aws_lambda_layer_version" "lambda_layer_02" {
